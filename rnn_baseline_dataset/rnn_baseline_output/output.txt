@@ -1,0 +1,62 @@
+\helper.py 
+PyTorch Version: 2.0.1+cu117
+CUDA Available: True
+Number of GPUs: 1
+GPU Name: NVIDIA GeForce RTX 3080 Ti
+spaCy model loaded successfully.
+All libraries imported successfully.
+Using device: cuda
+Train samples: 8000
+Validation samples: 2000
+Test samples: 10000
+Tokens: ['this', 'is', 'a', 'fantastic', 'movie', '!', 'i', 'loved', 'every', 'moment', 'of', 'it', '.']
+Tokenizing: 100%|██████████| 8000/8000 [00:08<00:00, 993.60it/s] 
+Vocabulary size: 16274
+DataLoaders created.
+Epoch: 1/5
+Training: 100%|██████████| 63/63 [00:29<00:00,  2.12it/s]
+Evaluating: 100%|██████████| 16/16 [00:07<00:00,  2.08it/s]
+Training:   0%|          | 0/63 [00:00<?, ?it/s]  Best model saved (Validation Loss: 0.6741)
+  Train Loss: 0.6865 | Train Acc: 54.33%
+  Valid Loss: 0.6741 | Valid Acc: 58.33%
+
+Epoch: 2/5
+Training: 100%|██████████| 63/63 [00:30<00:00,  2.09it/s]
+Evaluating: 100%|██████████| 16/16 [00:06<00:00,  2.58it/s]
+  Best model saved (Validation Loss: 0.6585)
+  Train Loss: 0.6402 | Train Acc: 63.65%
+  Valid Loss: 0.6585 | Valid Acc: 60.85%
+
+Epoch: 3/5
+Training: 100%|██████████| 63/63 [00:29<00:00,  2.15it/s]
+Evaluating: 100%|██████████| 16/16 [00:06<00:00,  2.39it/s]
+Training:   0%|          | 0/63 [00:00<?, ?it/s]  Best model saved (Validation Loss: 0.6462)
+  Train Loss: 0.5794 | Train Acc: 69.53%
+  Valid Loss: 0.6462 | Valid Acc: 65.00%
+
+Epoch: 4/5
+Training: 100%|██████████| 63/63 [00:30<00:00,  2.06it/s]
+Evaluating: 100%|██████████| 16/16 [00:06<00:00,  2.44it/s]
+Training:   0%|          | 0/63 [00:00<?, ?it/s]  Train Loss: 0.4859 | Train Acc: 76.76%
+  Valid Loss: 0.6514 | Valid Acc: 66.20%
+
+Epoch: 5/5
+Training: 100%|██████████| 63/63 [00:32<00:00,  1.92it/s]
+Evaluating: 100%|██████████| 16/16 [00:11<00:00,  1.35it/s]
+  Train Loss: 0.3836 | Train Acc: 83.18%
+  Valid Loss: 0.6933 | Valid Acc: 67.04%
+
+Evaluating: 100%|██████████| 79/79 [00:56<00:00,  1.40it/s]
+Predicting:   0%|          | 0/79 [00:00<?, ?it/s]Test Loss: 0.6872 | Test Accuracy: 60.86%
+Predicting: 100%|██████████| 79/79 [00:55<00:00,  1.42it/s]
+Review: This movie was absolutely fantastic, I loved it!
+Predicted: Positive (Score: 0.7481)
+
+Review: I hated this movie, it was so bad and boring.
+Predicted: Negative (Score: 0.1414)
+
+Review: It was okay, not great but not terrible either.
+Predicted: Negative (Score: 0.2897)
+
+
+Process finished with exit code 0
