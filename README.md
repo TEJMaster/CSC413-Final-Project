@@ -126,7 +126,7 @@ To replicate the RNN baseline model:
 1. **Clone the Repository**
 
    ```bash
-   git clone https://github.com/your_username/your_repository.git
+   git clone https://github.com/JoeZZG/CSC413-Final-Project.git
    cd your_repository
    ```
 
