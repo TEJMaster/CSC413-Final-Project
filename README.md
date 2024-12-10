@@ -110,8 +110,7 @@ This RNN-based baseline serves as a foundational model for sentiment analysis on
 │   ├── test_pos.csv
 │   └── train_unsup.csv  # Not used in this baseline
 ├── rnn_baseline.py
-├── README.md
-└── requirements.txt
+└── README.md
 ```
 
 - **`rnn_baseline_dataset/`**: Contains all the CSV files with labeled movie reviews.
