@@ -1,0 +1,30 @@
+Device: cuda
+Epoch [1/10], Train Loss: 2.1136, Val Loss: 1.1638
+Epoch [1/10], Val BLEU Score: 0.1725
+Epoch [2/10], Train Loss: 1.0132, Val Loss: 0.9068
+Epoch [2/10], Val BLEU Score: 0.2673
+Epoch [3/10], Train Loss: 0.8349, Val Loss: 0.8011
+Epoch [3/10], Val BLEU Score: 0.3413
+Epoch [4/10], Train Loss: 0.7486, Val Loss: 0.7275
+Epoch [4/10], Val BLEU Score: 0.3328
+Epoch [5/10], Train Loss: 0.6741, Val Loss: 0.6631
+Epoch [5/10], Val BLEU Score: 0.3943
+Epoch [6/10], Train Loss: 0.6203, Val Loss: 0.6280
+Epoch [6/10], Val BLEU Score: 0.4157
+Epoch [7/10], Train Loss: 0.5849, Val Loss: 0.5989
+Epoch [7/10], Val BLEU Score: 0.4408
+Epoch [8/10], Train Loss: 0.5548, Val Loss: 0.5656
+Epoch [8/10], Val BLEU Score: 0.4639
+Epoch [9/10], Train Loss: 0.5202, Val Loss: 0.5361
+Epoch [9/10], Val BLEU Score: 0.4794
+Epoch [10/10], Train Loss: 0.4908, Val Loss: 0.5149
+Epoch [10/10], Val BLEU Score: 0.5109
+Test Loss: 0.5152
+BLEU score on 100 test samples: 0.5326
+English Input:  new jersey is usually rainy during october , and it is beautiful in spring .
+Model Translation:  new jersey est généralement pluvieux en octobre , et il est généralement froid en janvier .
+Actual French:  new jersey est généralement pluvieux en octobre , et il est beau au printemps .
+
+--- Custom Sentence Translation ---
+English Input:  I like apple.
+Model Translation:  j'aime les raisins et les pommes .
