@@ -22,7 +22,7 @@ By implementing and evaluating these two models, we aim to understand the perfor
   - [Transformer Training Steps](#transformer-training-steps)
 - [Evaluation](#evaluation)
 - [Potential Improvements](#potential-improvements)
-- [Repository Structure](#repository-structure)
+- [Dataset Repository](#dataset_repository)
 - [Usage](#usage)
   - [RNN Baseline Usage](#rnn-baseline-usage)
   - [Transformer Baseline Usage](#transformer-baseline-usage)
