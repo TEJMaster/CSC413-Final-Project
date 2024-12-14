@@ -82,7 +82,6 @@ Model performance was evaluated using accuracy and confusion matrices. Additiona
 - **Hyperparameter Tuning**: Systematic optimization of learning rate, batch size, etc.
 - **Augmenting Transformers**: Exploring variations such as BERT or GPT architectures.
 
-
 ## Usage
 
 ### RNN Baseline Usage
@@ -100,6 +99,8 @@ Model performance was evaluated using accuracy and confusion matrices. Additiona
    ```
 
 ## Additional Resources
+
+- **IMDB Movie Reviews Dataset**: The original dataset used in this project for sentiment analysis. [IMDB Dataset](https://ai.stanford.edu/~amaas/data/sentiment/)
 
 - **Sentiment Analysis using RNN-LSTM**: This repository demonstrates sentiment analysis using Recurrent Neural Networks (RNN) with Long Short-Term Memory (LSTM) units, employing the Google News Word2Vec model for word embeddings. [GitHub Repository](https://github.com/saadarshad102/Sentiment-Analysis-RNN-LSTM)
 
