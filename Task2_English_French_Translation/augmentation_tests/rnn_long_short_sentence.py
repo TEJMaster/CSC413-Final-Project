@@ -9,7 +9,8 @@ from torch.utils.data import Dataset, DataLoader
 from typing import List, Tuple
 import nltk
 
-# Uncomment if needed:
+# Ensure NLTK's BLEU scorer is ready
+# Uncomment the following line if you haven't downloaded 'punkt' before
 # nltk.download('punkt')
 
 ######################################################################
@@ -20,9 +21,9 @@ data_dir = os.path.join(current_dir, "translation_train")
 en_file = "../../data/small_vocab_en.txt"
 fr_file = "../../data/small_vocab_fr.txt"
 
-sample_max = 10000           # Maximum number of samples
+sample_max = 10000           # Maximum number of samples to use (to speed up debugging)
 batch_size = 64              # Batch size for training
-embedding_size = 100         # Embedding dimension
+embedding_size = 128         # Embedding dimension
 hidden_size = 256            # Hidden size for the RNN
 num_epochs = 40              # Number of training epochs
 learning_rate = 0.001        # Learning rate for the optimizer
@@ -52,14 +53,15 @@ def load_data(en_path: str, fr_path: str) -> Tuple[List[List[str]], List[List[st
         en_sentences = f_en.read().strip().split('\n')
     with open(fr_path, 'r', encoding='utf-8') as f_fr:
         fr_sentences = f_fr.read().strip().split('\n')
-
+    # Pair them up
     data = list(zip(en_sentences, fr_sentences))
+    # Shuffle data
     random.shuffle(data)
-
     if sample_max < len(data):
         data = data[:sample_max]
-
     en_sentences, fr_sentences = zip(*data)
+
+    # Tokenize (simple split by space)
     en_tokenized = [s.strip().split() for s in en_sentences]
     fr_tokenized = [s.strip().split() for s in fr_sentences]
     return en_tokenized, fr_tokenized
@@ -68,12 +70,18 @@ def load_data(en_path: str, fr_path: str) -> Tuple[List[List[str]], List[List[st
 def build_vocab(sentences: List[List[str]]) -> dict:
     """
     Build a vocabulary mapping tokens to unique indices, including special tokens.
-    
+
     Special tokens:
         <pad>: padding
         <sos>: start of sequence
         <eos>: end of sequence
         <unk>: unknown token
+
+    Args:
+        sentences (List[List[str]]): Tokenized sentences.
+
+    Returns:
+        dict: Vocabulary mapping.
     """
     vocab = {"<pad>": 0, "<sos>": 1, "<eos>": 2, "<unk>": 3}
     for sent in sentences:
@@ -90,7 +98,7 @@ def numericalize(sentences: List[List[str]], vocab: dict, max_len: int, add_eos:
     Args:
         sentences (List[List[str]]): Tokenized sentences.
         vocab (dict): Vocabulary mapping.
-        max_len (int): Maximum length of sentences.
+        max_len (int): Maximum sentence length.
         add_eos (bool): Whether to append <eos> at the end of each sentence.
 
     Returns:
@@ -128,10 +136,11 @@ class TranslationDataset(Dataset):
 ######################################################################
 class EncoderRNN(nn.Module):
     """
-    GRU-based encoder for seq2seq translation model.
+    GRU-based encoder for Seq2Seq translation model.
     """
     def __init__(self, input_size: int, embed_size: int, hidden_size: int):
         super(EncoderRNN, self).__init__()
+        self.hidden_size = hidden_size
         self.embedding = nn.Embedding(input_size, embed_size, padding_idx=0)
         self.rnn = nn.GRU(embed_size, hidden_size, batch_first=True)
 
@@ -153,10 +162,11 @@ class EncoderRNN(nn.Module):
 
 class DecoderRNN(nn.Module):
     """
-    GRU-based decoder for seq2seq translation model.
+    GRU-based decoder for Seq2Seq translation model.
     """
     def __init__(self, output_size: int, embed_size: int, hidden_size: int):
         super(DecoderRNN, self).__init__()
+        self.hidden_size = hidden_size
         self.embedding = nn.Embedding(output_size, embed_size, padding_idx=0)
         self.rnn = nn.GRU(embed_size, hidden_size, batch_first=True)
         self.fc = nn.Linear(hidden_size, output_size)
@@ -212,7 +222,6 @@ class Seq2Seq(nn.Module):
         input_tok = torch.tensor([1] * batch_size, dtype=torch.long, device=device).unsqueeze(1)
 
         for t in range(trg_len):
-            # Decoder step
             output, hidden = self.decoder(input_tok, hidden)
             outputs[:, t, :] = output.squeeze(1)
             # Teacher forcing: next input is the next token in the target sequence
@@ -255,7 +264,6 @@ def train_model(model: nn.Module, dataloader: DataLoader, criterion, optimizer) 
         optimizer.step()
 
         epoch_loss += loss.item()
-
     return epoch_loss / len(dataloader)
 
 
@@ -277,15 +285,12 @@ def evaluate_model(model: nn.Module, dataloader: DataLoader, criterion) -> float
         for en_batch, fr_batch in dataloader:
             en_batch = en_batch.to(device)
             fr_batch = fr_batch.to(device)
-
             output = model(en_batch, fr_batch)
             output_dim = output.shape[-1]
             output = output.view(-1, output_dim)
             fr_batch = fr_batch.view(-1)
-
             loss = criterion(output, fr_batch)
             epoch_loss += loss.item()
-
     return epoch_loss / len(dataloader)
 
 
@@ -312,9 +317,10 @@ def translate_sentence(model: nn.Module, sentence: List[str], en_vocab: dict, fr
     en_tensor = torch.tensor(en_indices, dtype=torch.long, device=device).unsqueeze(0)
 
     with torch.no_grad():
+        # Encode
         enc_outputs, hidden = model.encoder(en_tensor)
-        input_tok = torch.tensor([fr_vocab["<sos>"]], dtype=torch.long, device=device).unsqueeze(1)
-
+        # Start with <sos>
+        input_tok = torch.tensor([1], dtype=torch.long, device=device).unsqueeze(1)
         predicted_tokens = []
         for _ in range(max_len):
             output, hidden = model.decoder(input_tok, hidden)
@@ -331,17 +337,17 @@ def translate_sentence(model: nn.Module, sentence: List[str], en_vocab: dict, fr
 
 def compute_bleu_score(model: nn.Module, dataloader: DataLoader, en_vocab: dict, fr_vocab: dict, num_samples: int = 100) -> float:
     """
-    Compute the BLEU score on a subset of data.
+    Compute the BLEU score on a subset of the dataset.
 
     Args:
         model (nn.Module): Trained Seq2Seq model.
-        dataloader (DataLoader): Data loader to compute BLEU on.
+        dataloader (DataLoader): Data loader for BLEU computation.
         en_vocab (dict): English vocabulary.
         fr_vocab (dict): French vocabulary.
-        num_samples (int): Number of samples to use for BLEU computation.
+        num_samples (int): Number of samples to compute BLEU.
 
     Returns:
-        float: Computed BLEU score.
+        float: Corpus BLEU score.
     """
     model.eval()
     references = []
@@ -362,12 +368,15 @@ def compute_bleu_score(model: nn.Module, dataloader: DataLoader, en_vocab: dict,
                 src_seq = en_batch[idx].cpu().numpy().tolist()
                 tgt_seq = fr_batch[idx].cpu().numpy().tolist()
 
+                # Remove padding and special tokens for source and target
                 src_words = [inv_en_vocab.get(t, "<unk>") for t in src_seq if t != en_vocab["<pad>"]]
-                tgt_words = [inv_fr_vocab.get(t, "<unk>") for t in tgt_seq if
-                             t not in [fr_vocab["<pad>"], fr_vocab["<sos>"], fr_vocab["<unk>"], fr_vocab["<eos>"]]]
+                tgt_words = [inv_fr_vocab.get(t, "<unk>") for t in tgt_seq if t not in [
+                    fr_vocab["<pad>"], fr_vocab["<sos>"], fr_vocab["<unk>"], fr_vocab["<eos>"]]]
 
-                pred_words = translate_sentence(model, src_words, en_vocab, fr_vocab, max_sentence_length)
-                references.append([tgt_words])
+                # Translate
+                pred_words = translate_sentence(model, src_words, en_vocab, fr_vocab, max_len=max_sentence_length)
+
+                references.append([tgt_words])  # BLEU expects list of references
                 candidates.append(pred_words)
                 count += 1
 
@@ -378,48 +387,10 @@ def compute_bleu_score(model: nn.Module, dataloader: DataLoader, en_vocab: dict,
     return bleu_score
 
 
-def load_glove_embeddings(glove_path: str, vocab: dict, embed_dim: int) -> np.ndarray:
-    """
-    Load GloVe embeddings and create an embedding matrix for the given vocabulary.
-
-    Args:
-        glove_path (str): Path to the GloVe embeddings file.
-        vocab (dict): Vocabulary mapping from token to index.
-        embed_dim (int): Dimension of the GloVe embeddings.
-
-    Returns:
-        np.ndarray: Embedding matrix of shape (vocab_size, embed_dim).
-                    If a word is not found, its embedding remains random.
-    """
-    # Initialize embedding matrix with random values
-    embedding_matrix = np.random.normal(scale=0.1, size=(len(vocab), embed_dim)).astype(np.float32)
-
-    # Load GloVe embeddings into a dictionary
-    glove_dict = {}
-    with open(glove_path, 'r', encoding='utf-8') as f:
-        for line in f:
-            parts = line.strip().split()
-            word = parts[0]
-            vector = np.asarray(parts[1:], dtype=np.float32)
-            if vector.shape[0] == embed_dim:
-                glove_dict[word] = vector
-
-    # Fill embedding_matrix with GloVe embeddings where possible
-    for word, idx in vocab.items():
-        if word in glove_dict:
-            embedding_matrix[idx] = glove_dict[word]
-
-    return embedding_matrix
-
-
 ######################################################################
 # Main Script
 ######################################################################
 if __name__ == "__main__":
-    # Path to your pre-trained GloVe files
-    glove_en_path = "../data/en_100d.txt" 
-    glove_fr_path = "../data/fr_100d.txt"  
-
     # Load data
     en_path = os.path.join(data_dir, en_file)
     fr_path = os.path.join(data_dir, fr_file)
@@ -429,25 +400,74 @@ if __name__ == "__main__":
     en_vocab = build_vocab(en_sents)
     fr_vocab = build_vocab(fr_sents)
 
-    # Numericalize data
+    # Numericalize the data
     en_data = numericalize(en_sents, en_vocab, max_sentence_length, add_eos=False)
     fr_data = numericalize(fr_sents, fr_vocab, max_sentence_length, add_eos=True)
 
-    # Split data into train, val, test
-    total_len = len(en_data)
+    # Pair the data
+    paired_data = list(zip(en_data, fr_data))
+
+    # Split into long and short sentences
+    long_data = [pair for pair in paired_data if (pair[0] != 0).sum().item() > 15]
+    short_data = [pair for pair in paired_data if (pair[0] != 0).sum().item() <= 15]
+
+    total_len = len(paired_data)
     val_len = int(total_len * validation_split)
     test_len = int(total_len * test_split)
     train_len = total_len - val_len - test_len
 
-    indices = list(range(total_len))
-    random.shuffle(indices)
-    train_indices = indices[:train_len]
-    val_indices = indices[train_len:train_len + val_len]
-    test_indices = indices[train_len + val_len:]
+    # Calculate desired counts
+    train_long_count = int(0.2 * train_len)
+    train_short_count = train_len - train_long_count
+    val_long_count = int(0.2 * val_len)
+    val_short_count = val_len - val_long_count
 
-    en_train, fr_train = en_data[train_indices], fr_data[train_indices]
-    en_val, fr_val = en_data[val_indices], fr_data[val_indices]
-    en_test, fr_test = en_data[test_indices], fr_data[test_indices]
+    random.shuffle(long_data)
+    random.shuffle(short_data)
+
+    # Attempt to create augmented splits
+    if len(long_data) >= train_long_count + val_long_count and len(short_data) >= train_short_count + val_short_count:
+        # We have enough long and short data
+        train_long = long_data[:train_long_count]
+        train_short = short_data[:train_short_count]
+        train_data = train_long + train_short
+        random.shuffle(train_data)
+
+        val_long = long_data[train_long_count:train_long_count + val_long_count]
+        val_short = short_data[train_short_count:train_short_count + val_short_count]
+        val_data = val_long + val_short
+        random.shuffle(val_data)
+
+        # Remaining test data
+        used_long = train_long_count + val_long_count
+        used_short = train_short_count + val_short_count
+        test_data = long_data[used_long:] + short_data[used_short:]
+    else:
+        # Not enough data to maintain desired proportions
+        # Fallback: do a simple random split without augmentation
+        random.shuffle(paired_data)
+        train_data = paired_data[:train_len]
+        val_data = paired_data[train_len:train_len + val_len]
+        test_data = paired_data[train_len + val_len:]
+
+    # If still no train_data (extreme edge case), fallback to entire dataset as training
+    if len(train_data) == 0:
+        print("No training data after augmentation attempt, falling back to entire dataset as training.")
+        train_data = paired_data
+        val_data = []
+        test_data = []
+
+    # Unzip the data
+    en_train, fr_train = zip(*train_data) if train_data else ([], [])
+    en_val, fr_val = zip(*val_data) if val_data else ([], [])
+    en_test, fr_test = zip(*test_data) if test_data else ([], [])
+
+    en_train = torch.stack(en_train) if en_train else torch.empty((0, max_sentence_length), dtype=torch.long)
+    fr_train = torch.stack(fr_train) if fr_train else torch.empty((0, max_sentence_length), dtype=torch.long)
+    en_val = torch.stack(en_val) if en_val else torch.empty((0, max_sentence_length), dtype=torch.long)
+    fr_val = torch.stack(fr_val) if fr_val else torch.empty((0, max_sentence_length), dtype=torch.long)
+    en_test = torch.stack(en_test) if en_test else torch.empty((0, max_sentence_length), dtype=torch.long)
+    fr_test = torch.stack(fr_test) if fr_test else torch.empty((0, max_sentence_length), dtype=torch.long)
 
     # Create Datasets and DataLoaders
     train_dataset = TranslationDataset(en_train, fr_train)
@@ -458,7 +478,12 @@ if __name__ == "__main__":
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
 
-    # Initialize the model
+    # Check if we have any training data
+    if len(train_dataset) == 0:
+        print("No training data available. Exiting.")
+        exit(0)
+
+    # Create model
     input_size_en = len(en_vocab)
     output_size_fr = len(fr_vocab)
     encoder = EncoderRNN(input_size_en, embedding_size, hidden_size).to(device)
@@ -468,16 +493,7 @@ if __name__ == "__main__":
     criterion = nn.CrossEntropyLoss(ignore_index=en_vocab["<pad>"])
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
-    # Load GloVe embeddings for English and French
-    en_embedding_matrix = load_glove_embeddings(glove_en_path, en_vocab, embedding_size)
-    fr_embedding_matrix = load_glove_embeddings(glove_fr_path, fr_vocab, embedding_size)
-
-    with torch.no_grad():
-        # Initialize encoder (English) and decoder (French) embedding layers with pre-trained GloVe embeddings
-        model.encoder.embedding.weight.copy_(torch.from_numpy(en_embedding_matrix))
-        model.decoder.embedding.weight.copy_(torch.from_numpy(fr_embedding_matrix))
-
-    # Training loop
+    # Training
     train_losses = []
     val_losses = []
     val_bleu_scores = []
@@ -489,19 +505,24 @@ if __name__ == "__main__":
         val_losses.append(val_loss)
         print(f"Epoch [{epoch + 1}/{num_epochs}], Train Loss: {train_loss:.4f}, Val Loss: {val_loss:.4f}")
 
-        # Compute BLEU score on validation set
-        val_bleu = compute_bleu_score(model, val_loader, en_vocab, fr_vocab, num_samples=100)
+        # Compute BLEU score on validation set if we have validation data
+        val_bleu = 0.0
+        if len(val_dataset) > 0:
+            val_bleu = compute_bleu_score(model, val_loader, en_vocab, fr_vocab, num_samples=100)
         val_bleu_scores.append(val_bleu)
         print(f"Epoch [{epoch + 1}/{num_epochs}], Val BLEU Score: {val_bleu:.4f}")
 
-    # Evaluate on test data
-    test_loss = evaluate_model(model, test_loader, criterion)
-    test_bleu = compute_bleu_score(model, test_loader, en_vocab, fr_vocab, num_samples=100)
+    # Evaluate on test data if we have test data
+    test_loss = 0.0
+    test_bleu = 0.0
+    if len(test_dataset) > 0:
+        test_loss = evaluate_model(model, test_loader, criterion)
+        test_bleu = compute_bleu_score(model, test_loader, en_vocab, fr_vocab, num_samples=1000)
     print(f"Test Loss: {test_loss:.4f}")
-    print(f"BLEU score on 100 test samples: {test_bleu:.4f}")
+    print(f"BLEU score on 1000 test samples: {test_bleu:.4f}")
 
-    # Append test metrics
-    train_losses.append(None)  # No training loss for test
+    # Append test metrics as an additional data point
+    train_losses.append(None)
     val_losses.append(test_loss)
     val_bleu_scores.append(test_bleu)
 
@@ -509,6 +530,7 @@ if __name__ == "__main__":
     fig, ax1 = plt.subplots(figsize=(10, 6))
     ax1.set_xlabel('Epoch')
     ax1.set_ylabel('Loss', color='blue')
+
     ax1.plot(range(1, num_epochs + 1), train_losses[:-1], label='Train Loss', color='blue')
     ax1.plot(range(1, num_epochs + 1), val_losses[:-1], label='Val Loss', color='cyan')
     ax1.tick_params(axis='y', labelcolor='blue')
@@ -522,29 +544,25 @@ if __name__ == "__main__":
 
     plt.title('Training/Validation/Test Metrics vs. Epoch')
     plt.grid(True)
-
-    # Display test metrics at the bottom of the plot
-    # This text shows the final test loss and BLEU score.
     plt.figtext(0.5, 0.01, f"Test Loss: {test_loss:.4f}, Test BLEU: {test_bleu:.4f}",
                 wrap=True, horizontalalignment='center', fontsize=12)
-
     plt.show()
 
-    # Translate a random test sentence
-    random_idx = random.randint(0, len(en_test) - 1)
-    inv_en_vocab = {v: k for k, v in en_vocab.items()}
-    inv_fr_vocab = {v: k for k, v in fr_vocab.items()}
+    # Translate a random test sentence if available
+    if len(test_dataset) > 0:
+        random_idx = random.randint(0, len(en_test) - 1)
+        inv_en_vocab = {v: k for k, v in en_vocab.items()}
+        inv_fr_vocab = {v: k for k, v in fr_vocab.items()}
 
-    test_en_sentence = [inv_en_vocab[t] for t in en_test[random_idx].tolist() if t != en_vocab["<pad>"]]
-    pred_fr = translate_sentence(model, test_en_sentence, en_vocab, fr_vocab, max_len=max_sentence_length)
-    actual_fr_sentence = [inv_fr_vocab[t] for t in fr_test[random_idx].tolist() if t not in [fr_vocab["<pad>"], fr_vocab["<eos>"]]]
+        test_en_sentence = [inv_en_vocab[t] for t in en_test[random_idx].tolist() if t != en_vocab["<pad>"]]
+        pred_fr = translate_sentence(model, test_en_sentence, en_vocab, fr_vocab, max_len=max_sentence_length)
+        actual_fr_sentence = [inv_fr_vocab[t] for t in fr_test[random_idx].tolist() if t not in [fr_vocab["<pad>"], fr_vocab["<eos>"]]]
 
-    print("English Input: ", " ".join(test_en_sentence))
-    print("Model Translation: ", " ".join(pred_fr))
-    print("Actual French: ", " ".join(actual_fr_sentence))
+        print("English Input: ", " ".join(test_en_sentence))
+        print("Model Translation: ", " ".join(pred_fr))
+        print("Actual French: ", " ".join(actual_fr_sentence))
 
     # Custom Sentence Translation
-    print("\n--- Custom Sentence Translation ---")
     custom_sentence = "I like apple."
     custom_tokens = custom_sentence.strip().split()
     pred_fr_custom = translate_sentence(model, custom_tokens, en_vocab, fr_vocab, max_len=max_sentence_length)
