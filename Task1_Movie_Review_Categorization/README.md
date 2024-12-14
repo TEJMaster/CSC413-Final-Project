@@ -1,220 +1,140 @@
-# Movie Review Categorization
+# English-French Translation
 
-This project focuses on performing sentiment analysis on IMDB movie reviews using two distinct architectures:
+This project focuses on building and benchmarking machine translation models to translate English sentences into French. Two distinct architectures are provided as benchmarks:
 
-1. **RNN Baseline (LSTM-based)**: A traditional approach leveraging Recurrent Neural Networks to model sequential data.
+1. **RNN Baseline (GRU-based)**: A traditional approach leveraging Recurrent Neural Networks with Gated Recurrent Units (GRUs) to model sequential data.
 2. **Transformer Baseline**: A modern approach utilizing Transformer architectures with self-attention mechanisms to capture global dependencies within text.
 
-By implementing and benchmarking these two models, we aim to understand the performance improvements and trade-offs between classic sequence models and state-of-the-art Transformer architectures in the context of sentiment analysis.
+By implementing and evaluating these two models, we aim to understand the performance improvements and trade-offs between classic sequence models and state-of-the-art Transformer architectures in the context of machine translation.
 
 ## Table of Contents
 
 - [Introduction](#introduction)
 - [Dataset](#dataset)
+  - [Dataset Repository](#dataset-repository)
   - [Dataset Preparation](#dataset-preparation)
-  - [Dataset Files](#dataset-files)
 - [Models](#models)
-  - [RNN Baseline](#rnn-baseline)
+  - [RNN Baseline (GRU-based)](#rnn-baseline-gru-based)
   - [Transformer Baseline](#transformer-baseline)
 - [Training Process](#training-process)
-  - [Common Steps](#common-steps)
-  - [RNN Training Steps](#rnn-training-steps)
-  - [Transformer Training Steps](#transformer-training-steps)
 - [Evaluation](#evaluation)
 - [Potential Improvements](#potential-improvements)
-- [Dataset Repository](#dataset_repository)
 - [Usage](#usage)
-  - [RNN Baseline](#rnn-baseline-usage)
-  - [Transformer Baseline](#transformer-baseline-usage)
+  - [RNN Baseline Usage](#rnn-baseline-usage)
+  - [Transformer Baseline Usage](#transformer-baseline-usage)
+- [Additional Resources](#additional-resources)
 - [License](#license)
 
 ## Introduction
 
-Sentiment analysis is a fundamental task in Natural Language Processing (NLP) that involves classifying text based on the expressed sentiment, typically as positive or negative. This project utilizes the IMDB movie reviews dataset to build and benchmark two different sentiment analysis models:
+Machine Translation (MT) is a pivotal task in Natural Language Processing (NLP) that involves automatically translating text from one language to another. This project utilizes the English-French language pair to build and benchmark two different MT models:
 
-- **RNN (LSTM) Baseline**: Utilizes Recurrent Neural Networks with Long Short-Term Memory (LSTM) layers to capture sequential dependencies in text data.
-- **Transformer Baseline**: Employs Transformer architectures with self-attention mechanisms to model long-range dependencies and contextual relationships within the text.
+- **RNN (GRU) Baseline**: Utilizes Recurrent Neural Networks with GRU layers to capture sequential dependencies in language data.
+- **Transformer Baseline**: Employs Transformer architectures with self-attention mechanisms to model long-range dependencies and contextual relationships within text.
 
-Establishing these baselines is crucial for comparing the effectiveness of different model architectures and for guiding future enhancements and optimizations.
+Establishing these baselines is crucial for comparing the effectiveness of different model architectures and guiding future enhancements and optimizations in machine translation systems.
 
 ## Dataset
 
-### Dataset Preparation
+### Dataset Repository
 
-The dataset used for this project is sourced from the [IMDB Movie Reviews](https://ai.stanford.edu/~amaas/data/sentiment/) dataset, curated by Stanford University. This dataset consists of 50,000 movie reviews labeled as either positive or negative, making it a suitable benchmark for binary sentiment classification tasks.
+The dataset used for this project is sourced from the [Laurent Veyssier's Machine Translation Repository](https://github.com/LaurentVeyssier/Machine-translation-English-French-with-Deep-neural-Network/tree/main/data). It consists of parallel English-French sentence pairs, which are essential for training and evaluating machine translation models.
+
+### Dataset Preparation
 
 **Steps Taken:**
 
-1. **Data Acquisition**: Downloaded the dataset from the official [IMDB website](https://ai.stanford.edu/~amaas/data/sentiment/).
-2. **Data Conversion**: The original dataset comprises plain text files. To facilitate easier handling and processing within the models, the text files were manually converted into CSV format. This conversion streamlines data loading and preprocessing steps in the training pipeline.
-3. **Data Organization**: The dataset is organized into separate CSV files for training and testing, further divided into positive and negative reviews.
-
-### Dataset Files
-
-All dataset files are located in the `movie_review_dataset` directory within this repository. The key files include:
-
-- **`train_neg.csv`**: Contains negative movie reviews for training.
-- **`train_pos.csv`**: Contains positive movie reviews for training.
-- **`test_neg.csv`**: Contains negative movie reviews for testing.
-- **`test_pos.csv`**: Contains positive movie reviews for testing.
-- **`train_unsup.csv`**: Contains unlabeled movie reviews for unsupervised training (not used in this baseline).
-
-**Note:** The `train_unsup.csv` file is included in the dataset but is not utilized in this baseline implementation. The primary reason for not using this file is to maintain a supervised learning setup, focusing solely on labeled data to establish clear performance benchmarks before introducing unsupervised or semi-supervised techniques.
+1. **Data Acquisition**: Retrieved the dataset from the official [GitHub repository](https://github.com/LaurentVeyssier/Machine-translation-English-French-with-Deep-neural-Network/tree/main/data).
+2. **Data Cleaning**: Ensured that the dataset is free from irregularities such as inconsistent formatting or missing values.
+3. **Data Splitting**: The dataset is divided into training, validation, and test sets to facilitate model training and unbiased evaluation.
+4. **Vocabulary Building**: Constructed vocabularies for both English and French languages, mapping each unique token to an integer index.
 
 ## Models
 
-### RNN Baseline
+### RNN Baseline (GRU-based)
 
-The RNN baseline employs a Recurrent Neural Network with LSTM layers, which are well-suited for capturing sequential dependencies in text data. The architecture comprises the following components:
+The RNN baseline employs a Sequence-to-Sequence (Seq2Seq) architecture with GRU layers for both the encoder and decoder. This model is designed to translate English sentences into French by learning the sequential dependencies in the data.
 
-1. **Embedding Layer**: Transforms input tokens into dense vector representations.
-2. **LSTM Layers**: Capture the temporal dependencies in the sequence of embeddings.
-3. **Fully Connected Layer**: Maps the LSTM outputs to the desired output dimension (binary classification).
-4. **Dropout Layer**: Regularizes the model to prevent overfitting.
+**Architecture Components:**
+
+1. **Encoder (GRU-based)**:
+   - **Embedding Layer**: Transforms input English tokens into dense vector representations.
+   - **GRU Layers**: Capture the sequential dependencies in the input data.
+   
+2. **Decoder (GRU-based)**:
+   - **Embedding Layer**: Transforms input French tokens (shifted right) into dense vectors.
+   - **GRU Layers**: Generate the output sequence based on the encoder's context.
+   - **Fully Connected Layer**: Maps GRU outputs to the French vocabulary space for prediction.
+
+3. **Seq2Seq Wrapper**:
+   - Combines the encoder and decoder to facilitate end-to-end training.
 
 ### Transformer Baseline
 
-The Transformer baseline utilizes a Transformer-based architecture, which has demonstrated superior performance in various NLP tasks due to its ability to model long-range dependencies through self-attention mechanisms. The architecture includes:
+The Transformer baseline utilizes a Transformer-based Sequence-to-Sequence architecture, which has demonstrated superior performance in various NLP tasks due to its ability to model long-range dependencies through self-attention mechanisms.
 
-1. **Embedding Layer**: Converts input tokens into dense vector representations.
-2. **Positional Encoding**: Adds positional information to the embeddings to retain the order of tokens.
-3. **Transformer Encoder Layers**: Consist of multi-head self-attention and feed-forward neural networks to process the embeddings.
-4. **Classification Head**: Uses the representation of a special classification token (`<cls>`) to perform binary classification.
-5. **Dropout Layer**: Applied for regularization.
+**Architecture Components:**
+
+1. **Encoder**:
+   - **Embedding Layer**: Converts input English tokens into dense vector representations.
+   - **Positional Encoding**: Adds positional information to the embeddings to retain the order of tokens.
+   - **Transformer Encoder Layers**: Consist of multi-head self-attention and feed-forward neural networks to process the embeddings.
+
+2. **Decoder**:
+   - **Embedding Layer**: Converts input French tokens (shifted right) into dense vectors.
+   - **Positional Encoding**: Adds positional information to the embeddings.
+   - **Transformer Decoder Layers**: Includes masked multi-head self-attention and encoder-decoder attention mechanisms.
+   - **Fully Connected Layer**: Maps Transformer outputs to the French vocabulary space for prediction.
+
+3. **Seq2Seq Wrapper**:
+   - Combines the encoder and decoder to facilitate end-to-end training.
 
 ## Training Process
 
-### Common Steps
+The training workflow includes:
 
-Both models follow a similar training workflow with shared preprocessing and data handling steps:
-
-1. **Environment Setup**: Install necessary libraries and set up the environment for PyTorch and NLP processing.
-2. **Data Loading**: Load the CSV files containing labeled movie reviews.
-3. **Tokenization**: Use `spaCy` for efficient tokenization to convert text into tokens.
-4. **Vocabulary Building**: Construct a vocabulary from the training data, mapping each unique token to an integer index.
-5. **Dataset and DataLoader Creation**: Implement custom PyTorch `Dataset` and `DataLoader` classes to handle batching and padding of sequences.
-6. **Model Initialization**: Initialize the respective model architectures with specified hyperparameters.
-7. **Training**: Train the models for a set number of epochs, monitoring validation loss to save the best-performing model.
-8. **Evaluation**: Evaluate the best model on the test set and record performance metrics.
-9. **Visualization**: Visualize training and validation loss and accuracy over epochs.
-10. **Prediction**: Use the trained models to predict sentiments of custom sentences.
-
-### RNN Training Steps
-
-The RNN training process involves:
-
-1. **Model Definition**: Define the RNN architecture with LSTM layers, embedding, dropout, and a fully connected output layer.
-2. **Loss and Optimizer**: Use Binary Cross-Entropy loss with logits and the Adam optimizer.
-3. **Accuracy Metric**: Define a binary accuracy metric to track performance.
-4. **Training Loop**: Train the model across multiple epochs, updating weights based on loss and optimizing for accuracy.
-5. **Model Saving**: Save the best-performing model based on validation loss.
-
-### Transformer Training Steps
-
-The Transformer training process includes:
-
-1. **Model Definition**: Define the Transformer-based architecture with embedding, positional encoding, Transformer encoder layers, and a classification head.
-2. **Loss and Optimizer**: Utilize Binary Cross-Entropy loss with logits and the Adam optimizer.
-3. **Accuracy Metric**: Implement a binary accuracy metric for performance tracking.
-4. **Training Loop**: Train the Transformer model over several epochs, adjusting weights to minimize loss and maximize accuracy.
-5. **Model Saving**: Save the best-performing Transformer model based on validation loss.
+1. **Data Preparation**: Tokenization, vocabulary building, and splitting the dataset into training, validation, and test sets.
+2. **Model Training**: Both RNN and Transformer models are trained on the prepared dataset using teacher forcing.
+3. **Evaluation**: Evaluate models on the validation and test datasets, calculating loss and BLEU scores.
 
 ## Evaluation
 
-Both models are evaluated using the following metrics:
+The evaluation metrics include:
 
-- **Loss**: Binary Cross-Entropy loss to measure the discrepancy between predicted and actual labels.
-- **Accuracy**: Percentage of correctly classified reviews.
-- **Confusion Matrix**: Visual representation of true vs. predicted labels to understand model performance in detail.
-
-Evaluation is conducted on a separate test set to assess the generalization capability of the trained models.
+1. **Cross-Entropy Loss**: Measures the difference between predicted and actual tokens.
+2. **BLEU Score**: Evaluates the quality of translations by comparing predicted translations to the reference translations.
 
 ## Potential Improvements
 
-While both baseline models provide solid foundations, several areas offer opportunities for enhancement:
-
-- **Pre-trained Embeddings**: Incorporating pre-trained word embeddings like GloVe or Word2Vec could enhance the models' understanding of semantic relationships.
-- **Bidirectional LSTM**: Further tuning of bidirectional LSTM parameters or experimenting with different architectures could improve results.
-- **Advanced Attention Mechanisms**: Enhancing Transformer models with more sophisticated attention mechanisms might yield better performance.
-- **Hyperparameter Optimization**: Systematic exploration of hyperparameters (e.g., learning rate, batch size) could lead to improved model performance.
-- **Handling Unsupervised Data**: Leveraging the `train_unsup.csv` file through semi-supervised learning techniques could provide additional insights and improve model robustness.
-
-## Dataset Repository
-- **`CSC413-Final-Project/Task1_Movie_Review_Categorization/data`**: Contains all the CSV files with labeled movie reviews.
-- **`rnn_baseline.ipynb`**: Jupyter Notebook implementing the RNN baseline model.
-- **`transformer_baseline.ipynb`**: Jupyter Notebook implementing the Transformer baseline model.
-- **`README.md`**: This documentation file.
-- **`LICENSE`**: License information for the project.
+- **Pre-trained Embeddings**: Incorporating embeddings like GloVe or FastText.
+- **Attention Mechanisms for RNN**: Adding attention to the GRU-based model.
+- **Hyperparameter Optimization**: Experimenting with different parameters to improve performance.
 
 ## Usage
 
-To replicate and experiment with both the RNN and Transformer baseline models, follow the steps below.
-
 ### RNN Baseline Usage
 
-1. **Clone the Repository**
-
+1. Navigate to the project directory.
+2. Run the RNN script:
    ```bash
-   git clone https://github.com/JoeZZG/CSC413-Final-Project.git
-   cd CSC413-Final-Project
+   python rnn_baseline_generative.py
    ```
-
-2. **Install Dependencies**
-
-   It is recommended to use a virtual environment.
-
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-3. **Prepare the Dataset**
-
-   Ensure that the `movie_review_dataset` directory contains the necessary CSV files (`train_neg.csv`, `train_pos.csv`, `test_neg.csv`, `test_pos.csv`).
-
-4. **Run the RNN Baseline Notebook**
-
-   Open `rnn_baseline.ipynb` using Jupyter Notebook or Google Colab and execute all cells to train and evaluate the RNN model.
-
-   ```bash
-   jupyter notebook rnn_baseline.ipynb
-   ```
-
-5. **View Results**
-
-   - Training and validation loss and accuracy plots will be displayed.
-   - The best-performing model will be saved as `best-model.pt`.
-   - A confusion matrix will visualize the model's performance on the test set.
-   - Custom sentiment predictions can be made by modifying the `sample_reviews` list in the notebook.
 
 ### Transformer Baseline Usage
 
-1. **Clone the Repository**
-
-   If not already done, clone the repository as shown above.
-
-2. **Install Dependencies**
-
-   Ensure that dependencies are installed as per the `requirements.txt` file.
-
-3. **Prepare the Dataset**
-
-   Ensure that the `movie_review_dataset` directory contains the necessary CSV files (`train_neg.csv`, `train_pos.csv`, `test_neg.csv`, `test_pos.csv`).
-
-4. **Run the Transformer Baseline Notebook**
-
-   Open `transformer_baseline.ipynb` using Jupyter Notebook or Google Colab and execute all cells to train and evaluate the Transformer model.
-
+1. Navigate to the project directory.
+2. Run the Transformer script:
    ```bash
-   jupyter notebook transformer_baseline.ipynb
+   python transformer_baseline_generative.py
    ```
 
-5. **View Results**
+## Additional Resources
 
-   - Training and validation loss and accuracy plots will be displayed.
-   - The best-performing Transformer model will be saved as `best-transformer-model.pt`.
-   - A confusion matrix will visualize the model's performance on the test set.
-   - Custom sentiment predictions can be made by modifying the `sample_reviews` list in the notebook.
+- **RNN Baseline Reference**: [Machine Translation Using Seq2Seq with Attention](https://github.com/shravankumar147/seq2seq-attention-mt)
+- **Transformer Baseline Reference**: [Transformer Model Implementation](https://github.com/tensorflow/tensor2tensor)
+- **Data Source**: The English-French parallel corpus used in this project is sourced from [Laurent Veyssier's Machine Translation Repository](https://github.com/LaurentVeyssier/Machine-translation-English-French-with-Deep-neural-Network/tree/main/data).
+- **Evaluation Metric**: BLEU score computation is based on the implementation from [BangoC123/BLEU](https://github.com/bangoc123/BLEU).
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE).
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
