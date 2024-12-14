@@ -11,21 +11,18 @@ By implementing and evaluating these two models, we aim to understand the perfor
 
 - [Introduction](#introduction)
 - [Dataset](#dataset)
+  - [Dataset Repository](#dataset-repository)
   - [Dataset Preparation](#dataset-preparation)
-  - [Dataset Files](#dataset-files)
 - [Models](#models)
   - [RNN Baseline (GRU-based)](#rnn-baseline-gru-based)
   - [Transformer Baseline](#transformer-baseline)
 - [Training Process](#training-process)
-  - [Common Steps](#common-steps)
-  - [RNN Training Steps](#rnn-training-steps)
-  - [Transformer Training Steps](#transformer-training-steps)
 - [Evaluation](#evaluation)
 - [Potential Improvements](#potential-improvements)
-- [Dataset Repository](#dataset_repository)
 - [Usage](#usage)
   - [RNN Baseline Usage](#rnn-baseline-usage)
   - [Transformer Baseline Usage](#transformer-baseline-usage)
+- [Additional Resources](#additional-resources)
 - [License](#license)
 
 ## Introduction
@@ -39,9 +36,11 @@ Establishing these baselines is crucial for comparing the effectiveness of diffe
 
 ## Dataset
 
-### Dataset Preparation
+### Dataset Repository
 
 The dataset used for this project is sourced from the [Laurent Veyssier's Machine Translation Repository](https://github.com/LaurentVeyssier/Machine-translation-English-French-with-Deep-neural-Network/tree/main/data). It consists of parallel English-French sentence pairs, which are essential for training and evaluating machine translation models.
+
+### Dataset Preparation
 
 **Steps Taken:**
 
@@ -49,15 +48,6 @@ The dataset used for this project is sourced from the [Laurent Veyssier's Machin
 2. **Data Cleaning**: Ensured that the dataset is free from irregularities such as inconsistent formatting or missing values.
 3. **Data Splitting**: The dataset is divided into training, validation, and test sets to facilitate model training and unbiased evaluation.
 4. **Vocabulary Building**: Constructed vocabularies for both English and French languages, mapping each unique token to an integer index.
-
-### Dataset Files
-
-All dataset files are located in the `translation_train` directory within this repository. The key files include:
-
-- **`small_vocab_en.txt`**: Contains English sentences for training and evaluation.
-- **`small_vocab_fr.txt`**: Contains corresponding French translations for the English sentences.
-
-**Note:** The dataset has been limited to a manageable size (`sample_max = 10,000` samples) to expedite training and experimentation. Adjust `sample_max` in the scripts if you wish to use a larger dataset.
 
 ## Models
 
@@ -101,162 +91,50 @@ The Transformer baseline utilizes a Transformer-based Sequence-to-Sequence archi
 
 ## Training Process
 
-### Common Steps
+The training workflow includes:
 
-Both models follow a similar training workflow with shared preprocessing and data handling steps:
-
-1. **Environment Setup**: Install necessary libraries and set up the environment for PyTorch and NLP processing.
-2. **Data Loading**: Load the English-French sentence pairs from the CSV files.
-3. **Tokenization**: Use `nltk` for efficient tokenization to convert text into tokens.
-4. **Vocabulary Building**: Construct vocabularies for English and French languages, mapping each unique token to an integer index.
-5. **Numericalization**: Convert tokenized sentences into numerical indices based on the constructed vocabularies.
-6. **Dataset and DataLoader Creation**: Implement custom PyTorch `Dataset` and `DataLoader` classes to handle batching and padding of sequences.
-7. **Model Initialization**: Initialize the respective model architectures with specified hyperparameters.
-8. **Training**: Train the models for a set number of epochs, monitoring validation loss to save the best-performing model.
-9. **Evaluation**: Evaluate the best model on the test set and record performance metrics.
-10. **Visualization**: Visualize training and validation loss and BLEU scores over epochs.
-11. **Prediction**: Use the trained models to translate custom English sentences into French.
-
-### RNN Training Steps
-
-The RNN training process involves:
-
-1. **Model Definition**: Define the Seq2Seq architecture with GRU-based encoder and decoder.
-2. **Loss and Optimizer**: Use Cross-Entropy Loss with padding index ignored and the Adam optimizer.
-3. **Training Loop**: Iterate over epochs, training the model on the training set and evaluating on the validation set.
-4. **Model Saving**: Save the best-performing model based on validation loss.
-5. **BLEU Score Computation**: Calculate the BLEU score on the validation set to assess translation quality.
-
-### Transformer Training Steps
-
-The Transformer training process includes:
-
-1. **Model Definition**: Define the Transformer-based Seq2Seq architecture with encoder and decoder layers.
-2. **Loss and Optimizer**: Utilize Cross-Entropy Loss with padding index ignored and the Adam optimizer.
-3. **Training Loop**: Iterate over epochs, training the model on the training set and evaluating on the validation set.
-4. **Model Saving**: Save the best-performing model based on validation loss.
-5. **BLEU Score Computation**: Calculate the BLEU score on the validation set to assess translation quality.
+1. **Data Preparation**: Tokenization, vocabulary building, and splitting the dataset into training, validation, and test sets.
+2. **Model Training**: Both RNN and Transformer models are trained on the prepared dataset using teacher forcing.
+3. **Evaluation**: Evaluate models on the validation and test datasets, calculating loss and BLEU scores.
 
 ## Evaluation
 
-Both models are evaluated using the following metrics:
+The evaluation metrics include:
 
-- **Loss**: Cross-Entropy Loss to measure the discrepancy between predicted and actual tokens.
-- **BLEU Score**: A standard metric for evaluating the quality of machine-translated text by comparing it to one or more reference translations.
-
-**Evaluation Process:**
-
-1. **Validation Evaluation**: During training, after each epoch, evaluate the model on the validation set to monitor performance and prevent overfitting.
-2. **Test Evaluation**: After training, evaluate the best model on the test set to assess its generalization capability.
-3. **BLEU Score Calculation**: Compute the BLEU score on a subset of the validation and test sets to quantitatively measure translation quality.
-4. **Visualization**: Plot training and validation loss alongside BLEU scores to visualize the model's learning progress.
+1. **Cross-Entropy Loss**: Measures the difference between predicted and actual tokens.
+2. **BLEU Score**: Evaluates the quality of translations by comparing predicted translations to the reference translations.
 
 ## Potential Improvements
 
-While both baseline models provide solid foundations, several areas offer opportunities for enhancement:
+- **Pre-trained Embeddings**: Incorporating embeddings like GloVe or FastText.
+- **Attention Mechanisms for RNN**: Adding attention to the GRU-based model.
+- **Hyperparameter Optimization**: Experimenting with different parameters to improve performance.
 
-- **Pre-trained Embeddings**: Incorporating pre-trained word embeddings like GloVe or FastText could enhance the models' understanding of semantic relationships.
-- **Attention Mechanisms**: Experimenting with more sophisticated attention mechanisms or increasing the number of attention heads in the Transformer model might yield better performance.
-- **Hyperparameter Optimization**: Systematically exploring hyperparameters (e.g., learning rate, batch size, embedding size) could lead to improved model performance.
-- **Beam Search Decoding**: Implementing beam search instead of greedy decoding can improve translation quality by considering multiple possible translations.
-- **Handling Larger Datasets**: Scaling up the dataset size could enhance the models' ability to generalize and improve translation accuracy.
-- **Incorporating Bidirectional RNNs**: Using bidirectional GRUs in the encoder could provide the decoder with more contextual information.
-
-## Dataset Repository
-- **`small_vocab_en.txt`**: English sentences.
-- **`small_vocab_fr.txt`**: Corresponding French translations.
-- **`rnn_baseline_generative.py`**: The main Python script implementing the RNN (GRU-based) baseline translation model.
-- **`transformer_baseline_generative.py`**: The main Python script implementing the Transformer-based baseline translation model.
-- **`README.md`**: This documentation file.
 ## Usage
 
 ### RNN Baseline Usage
 
-To replicate the RNN (GRU-based) baseline model for English-French translation:
-
-1. **Clone the Repository**
-
-   ```bash
-   git clone https://github.com/YourUsername/English-French-Translation.git
-   cd English-French-Translation
-   ```
-
-2. **Install Dependencies**
-
-   It's recommended to use a virtual environment.
-
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-3. **Prepare the Dataset**
-
-   Ensure that the `translation_train` directory contains the necessary data files (`small_vocab_en.txt`, `small_vocab_fr.txt`).
-
-4. **Run the RNN Baseline Model**
-
-   Execute the Python script to train and evaluate the RNN model.
-
+1. Navigate to the project directory.
+2. Run the RNN script:
    ```bash
    python rnn_baseline_generative.py
    ```
 
-   **What Happens:**
-
-   - The model is trained for the specified number of epochs (`num_epochs = 40`).
-   - After each epoch, the model is evaluated on the validation set, and the BLEU score is computed.
-   - The best-performing model based on validation loss is saved as `best-model.pt`.
-   - After training, the model is evaluated on the test set, and a BLEU score is reported.
-   - Visualizations of training/validation loss and BLEU scores are displayed.
-   - The script demonstrates translation of a random test sentence and a custom English sentence.
-
 ### Transformer Baseline Usage
 
-To replicate the Transformer baseline model for English-French translation:
-
-1. **Clone the Repository**
-
-   ```bash
-   git clone https://github.com/YourUsername/English-French-Translation.git
-   cd English-French-Translation
-   ```
-
-2. **Install Dependencies**
-
-   It's recommended to use a virtual environment.
-
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-3. **Prepare the Dataset**
-
-   Ensure that the `translation_train` directory contains the necessary data files (`small_vocab_en.txt`, `small_vocab_fr.txt`).
-
-4. **Run the Transformer Baseline Model**
-
-   Execute the Python script to train and evaluate the Transformer model.
-
+1. Navigate to the project directory.
+2. Run the Transformer script:
    ```bash
    python transformer_baseline_generative.py
    ```
 
-   **What Happens:**
+## Additional Resources
 
-   - The model is trained for the specified number of epochs (`num_epochs = 40`).
-   - After each epoch, the model is evaluated on the validation set, and the BLEU score is computed.
-   - The best-performing model based on validation loss is saved as `best-transformer-model.pt`.
-   - After training, the model is evaluated on the test set, and a BLEU score is reported.
-   - Visualizations of training/validation loss and BLEU scores are displayed.
-   - The script demonstrates translation of a random test sentence and a custom English sentence.
+- **RNN Baseline Reference**: [Machine Translation Using Seq2Seq with Attention](https://github.com/shravankumar147/seq2seq-attention-mt)
+- **Transformer Baseline Reference**: [Transformer Model Implementation](https://github.com/tensorflow/tensor2tensor)
+- **Data Source**: The English-French parallel corpus used in this project is sourced from [Laurent Veyssier's Machine Translation Repository](https://github.com/LaurentVeyssier/Machine-translation-English-French-with-Deep-neural-Network/tree/main/data).
+- **Evaluation Metric**: BLEU score computation is based on the implementation from [BangoC123/BLEU](https://github.com/bangoc123/BLEU).
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE).
-
----
-
-**Acknowledgments:**
-
-- **Data Source**: The English-French parallel corpus used in this project is sourced from [Laurent Veyssier's Machine Translation Repository](https://github.com/LaurentVeyssier/Machine-translation-English-French-with-Deep-neural-Network/tree/main/data).
-- **Evaluation Metric**: BLEU score computation is based on the implementation from [BangoC123/BLEU](https://github.com/bangoc123/BLEU).
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
