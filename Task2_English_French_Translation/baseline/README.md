@@ -1,4 +1,4 @@
-# English-French Translation
+# English-French Translation with RNN and Transformer Baselines
 
 This project focuses on building and benchmarking machine translation models to translate English sentences into French. Two distinct architectures are provided as benchmarks:
 
