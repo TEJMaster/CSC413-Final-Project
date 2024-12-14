@@ -1,4 +1,4 @@
-max_sentence_lengthimport os
+import os
 import random
 import numpy as np
 import matplotlib.pyplot as plt
@@ -378,20 +378,58 @@ def compute_bleu_score(model: nn.Module, dataloader: DataLoader, en_vocab: dict,
     return bleu_score
 
 
+def load_glove_embeddings(glove_path: str, vocab: dict, embed_dim: int) -> np.ndarray:
+    """
+    Load GloVe embeddings and create an embedding matrix for the given vocabulary.
+
+    Args:
+        glove_path (str): Path to the GloVe embeddings file.
+        vocab (dict): Vocabulary mapping from token to index.
+        embed_dim (int): Dimension of the GloVe embeddings.
+
+    Returns:
+        np.ndarray: Embedding matrix of shape (vocab_size, embed_dim).
+                    If a word is not found, its embedding remains random.
+    """
+    # Initialize embedding matrix with random values
+    embedding_matrix = np.random.normal(scale=0.1, size=(len(vocab), embed_dim)).astype(np.float32)
+
+    # Load GloVe embeddings into a dictionary
+    glove_dict = {}
+    with open(glove_path, 'r', encoding='utf-8') as f:
+        for line in f:
+            parts = line.strip().split()
+            word = parts[0]
+            vector = np.asarray(parts[1:], dtype=np.float32)
+            if vector.shape[0] == embed_dim:
+                glove_dict[word] = vector
+
+    # Fill embedding_matrix with GloVe embeddings where possible
+    for word, idx in vocab.items():
+        if word in glove_dict:
+            embedding_matrix[idx] = glove_dict[word]
+
+    return embedding_matrix
+
+
 ######################################################################
 # Main Script
 ######################################################################
 if __name__ == "__main__":
+    # Path to your pre-trained GloVe files
+    glove_en_path = "../data/en_100d.txt" 
+    glove_fr_path = "../data/fr_100d.txt"  
+
     # Load data
     en_path = os.path.join(data_dir, en_file)
     fr_path = os.path.join(data_dir, fr_file)
     en_sents, fr_sents = load_data(en_path, fr_path)
 
-    # Build vocabulary
+    # Build vocabularies
     en_vocab = build_vocab(en_sents)
     fr_vocab = build_vocab(fr_sents)
 
-    # Numericalize
+    # Numericalize data
     en_data = numericalize(en_sents, en_vocab, max_sentence_length, add_eos=False)
     fr_data = numericalize(fr_sents, fr_vocab, max_sentence_length, add_eos=True)
 
@@ -411,6 +449,7 @@ if __name__ == "__main__":
     en_val, fr_val = en_data[val_indices], fr_data[val_indices]
     en_test, fr_test = en_data[test_indices], fr_data[test_indices]
 
+    # Create Datasets and DataLoaders
     train_dataset = TranslationDataset(en_train, fr_train)
     val_dataset = TranslationDataset(en_val, fr_val)
     test_dataset = TranslationDataset(en_test, fr_test)
@@ -419,7 +458,7 @@ if __name__ == "__main__":
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
 
-    # Create model
+    # Initialize the model
     input_size_en = len(en_vocab)
     output_size_fr = len(fr_vocab)
     encoder = EncoderRNN(input_size_en, embedding_size, hidden_size).to(device)
@@ -429,7 +468,16 @@ if __name__ == "__main__":
     criterion = nn.CrossEntropyLoss(ignore_index=en_vocab["<pad>"])
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
-    # Training
+    # Load GloVe embeddings for English and French
+    en_embedding_matrix = load_glove_embeddings(glove_en_path, en_vocab, embedding_size)
+    fr_embedding_matrix = load_glove_embeddings(glove_fr_path, fr_vocab, embedding_size)
+
+    with torch.no_grad():
+        # Initialize encoder (English) and decoder (French) embedding layers with pre-trained GloVe embeddings
+        model.encoder.embedding.weight.copy_(torch.from_numpy(en_embedding_matrix))
+        model.decoder.embedding.weight.copy_(torch.from_numpy(fr_embedding_matrix))
+
+    # Training loop
     train_losses = []
     val_losses = []
     val_bleu_scores = []
@@ -441,24 +489,24 @@ if __name__ == "__main__":
         val_losses.append(val_loss)
         print(f"Epoch [{epoch + 1}/{num_epochs}], Train Loss: {train_loss:.4f}, Val Loss: {val_loss:.4f}")
 
+        # Compute BLEU score on validation set
         val_bleu = compute_bleu_score(model, val_loader, en_vocab, fr_vocab, num_samples=100)
         val_bleu_scores.append(val_bleu)
         print(f"Epoch [{epoch + 1}/{num_epochs}], Val BLEU Score: {val_bleu:.4f}")
 
     # Evaluate on test data
     test_loss = evaluate_model(model, test_loader, criterion)
-    print(f"Test Loss: {test_loss:.4f}")
     test_bleu = compute_bleu_score(model, test_loader, en_vocab, fr_vocab, num_samples=100)
+    print(f"Test Loss: {test_loss:.4f}")
     print(f"BLEU score on 100 test samples: {test_bleu:.4f}")
 
     # Append test metrics
-    train_losses.append(None)
+    train_losses.append(None)  # No training loss for test
     val_losses.append(test_loss)
     val_bleu_scores.append(test_bleu)
 
-    # Visualization
+    # Plotting
     fig, ax1 = plt.subplots(figsize=(10, 6))
-
     ax1.set_xlabel('Epoch')
     ax1.set_ylabel('Loss', color='blue')
     ax1.plot(range(1, num_epochs + 1), train_losses[:-1], label='Train Loss', color='blue')
@@ -475,7 +523,7 @@ if __name__ == "__main__":
     plt.title('Training/Validation/Test Metrics vs. Epoch')
     plt.grid(True)
 
-    # Display test metrics at the bottom of the plot.
+    # Display test metrics at the bottom of the plot
     # This text shows the final test loss and BLEU score.
     plt.figtext(0.5, 0.01, f"Test Loss: {test_loss:.4f}, Test BLEU: {test_bleu:.4f}",
                 wrap=True, horizontalalignment='center', fontsize=12)

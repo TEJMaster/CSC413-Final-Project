@@ -26,7 +26,7 @@ batch_size = 64              # Batch size for training and evaluation
 embedding_size = 100         # Embedding dimension
 hidden_size = 256            # Hidden size for the Transformer model
 num_layers = 3               # Number of encoder/decoder layers in the Transformer
-num_heads = 8                # Number of attention heads in the Transformer
+num_heads = 4                # Number of attention heads in the Transformer
 ffn_dim = 512                # Feedforward network dimension in Transformer layers
 num_epochs = 40              # Number of training epochs
 learning_rate = 0.001        # Learning rate for the optimizer
@@ -388,10 +388,48 @@ def compute_bleu_score(model: nn.Module, dataloader: DataLoader, en_vocab: dict,
     return bleu_score
 
 
+def load_glove_embeddings(glove_path: str, vocab: dict, embed_dim: int) -> np.ndarray:
+    """
+    Load GloVe embeddings and create an embedding matrix for the given vocabulary.
+
+    Args:
+        glove_path (str): Path to the GloVe embeddings file.
+        vocab (dict): Vocabulary mapping from token to index.
+        embed_dim (int): Dimension of the GloVe embeddings.
+
+    Returns:
+        np.ndarray: Embedding matrix of shape (vocab_size, embed_dim).
+                    If a word is not found, its embedding remains random.
+    """
+    # Initialize embedding matrix with random values
+    embedding_matrix = np.random.normal(scale=0.1, size=(len(vocab), embed_dim)).astype(np.float32)
+
+    # Load GloVe embeddings into a dictionary
+    glove_dict = {}
+    with open(glove_path, 'r', encoding='utf-8') as f:
+        for line in f:
+            parts = line.strip().split()
+            word = parts[0]
+            vector = np.asarray(parts[1:], dtype=np.float32)
+            if vector.shape[0] == embed_dim:
+                glove_dict[word] = vector
+
+    # Fill embedding_matrix with GloVe embeddings where possible
+    for word, idx in vocab.items():
+        if word in glove_dict:
+            embedding_matrix[idx] = glove_dict[word]
+
+    return embedding_matrix
+
+
 ######################################################################
 # Main Script
 ######################################################################
 if __name__ == "__main__":
+    # Path to your pre-trained GloVe files
+    glove_en_path = "../data/en_100d.txt" 
+    glove_fr_path = "../data/fr_100d.txt"  
+
     # Load data
     en_path = os.path.join(data_dir, en_file)
     fr_path = os.path.join(data_dir, fr_file)
@@ -401,11 +439,11 @@ if __name__ == "__main__":
     en_vocab = build_vocab(en_sents)
     fr_vocab = build_vocab(fr_sents)
 
-    # Numericalize the data
+    # Numericalize data
     en_data = numericalize(en_sents, en_vocab, max_sentence_length, add_eos=False)
     fr_data = numericalize(fr_sents, fr_vocab, max_sentence_length, add_eos=True)
 
-    # Split data into train, val, test sets
+    # Split data into train, val, test
     total_len = len(en_data)
     val_len = int(total_len * validation_split)
     test_len = int(total_len * test_split)
@@ -448,6 +486,16 @@ if __name__ == "__main__":
     criterion = nn.CrossEntropyLoss(ignore_index=0)  
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
+    # Load GloVe embeddings for English and French
+    en_embedding_matrix = load_glove_embeddings(glove_en_path, en_vocab, embedding_size)
+    fr_embedding_matrix = load_glove_embeddings(glove_fr_path, fr_vocab, embedding_size)
+
+    with torch.no_grad():
+        # Initialize source (English) embedding layer with pre-trained GloVe embeddings
+        model.src_embed.weight.copy_(torch.from_numpy(en_embedding_matrix))
+        # Initialize target (French) embedding layer with pre-trained GloVe embeddings
+        model.tgt_embed.weight.copy_(torch.from_numpy(fr_embedding_matrix))
+
     # Training loop
     train_losses = []
     val_losses = []
@@ -465,14 +513,14 @@ if __name__ == "__main__":
         val_bleu_scores.append(val_bleu)
         print(f"Epoch [{epoch + 1}/{num_epochs}], Val BLEU Score: {val_bleu:.4f}")
 
-    # After training, evaluate on the test set
+    # Evaluate on test data
     test_loss = evaluate_model(model, test_loader, criterion)
-    test_bleu = compute_bleu_score(model, test_loader, en_vocab, fr_vocab, num_samples=1000)
+    test_bleu = compute_bleu_score(model, test_loader, en_vocab, fr_vocab, num_samples=100)
     print(f"Test Loss: {test_loss:.4f}")
-    print(f"BLEU score on 1000 test samples: {test_bleu:.4f}")
+    print(f"BLEU score on 100 test samples: {test_bleu:.4f}")
 
-    # Append test metrics as an additional epoch point
-    train_losses.append(None)
+    # Append test metrics
+    train_losses.append(None)  # No training loss for test
     val_losses.append(test_loss)
     val_bleu_scores.append(test_bleu)
 
@@ -494,7 +542,7 @@ if __name__ == "__main__":
     plt.title('Training/Validation/Test Metrics vs. Epoch')
     plt.grid(True)
 
-    # Display test metrics at the bottom of the plot.
+    # Display test metrics at the bottom of the plot
     # This text shows the final test loss and BLEU score.
     plt.figtext(0.5, 0.01, f"Test Loss: {test_loss:.4f}, Test BLEU: {test_bleu:.4f}",
                 wrap=True, horizontalalignment='center', fontsize=12)
@@ -514,7 +562,7 @@ if __name__ == "__main__":
     print("Model Translation: ", " ".join(pred_fr))
     print("Actual French: ", " ".join(actual_fr_sentence))
 
-    # Custom sentence translation
+    # Custom Sentence Translation
     print("\n--- Custom Sentence Translation ---")
     custom_sentence = "I like apple."
     custom_tokens = custom_sentence.strip().split()
