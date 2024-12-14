@@ -22,7 +22,7 @@ By implementing and benchmarking these two models, we aim to understand the perf
   - [Transformer Training Steps](#transformer-training-steps)
 - [Evaluation](#evaluation)
 - [Potential Improvements](#potential-improvements)
-- [Repository Structure](#repository-structure)
+- [Dataset Repository](#dataset_repository)
 - [Usage](#usage)
   - [RNN Baseline](#rnn-baseline-usage)
   - [Transformer Baseline](#transformer-baseline-usage)
