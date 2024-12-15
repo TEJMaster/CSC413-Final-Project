@@ -1,4 +1,4 @@
-# English-French Translation with RNN and Transformer Baselines
+# English-French Translation with RNN and Transformer
 
 This project focuses on building and benchmarking machine translation models to translate English sentences into French. Two distinct architectures are provided as benchmarks:
 
@@ -9,7 +9,7 @@ By implementing and evaluating these two models, we aim to understand the perfor
 
 ## Table of Contents
 
-- [English-French Translation with RNN and Transformer Baselines](#english-french-translation-with-rnn-and-transformer-baselines)
+- [English-French Translation with RNN and Transformer](#english-french-translation-with-rnn-and-transformer)
   - [Table of Contents](#table-of-contents)
   - [Introduction](#introduction)
   - [Dataset](#dataset)
@@ -123,7 +123,7 @@ Model performance was evaluated using accuracy and confusion matrices. Additiona
   - `rnn_baseline_generative.txt` & `transformer_baseline_generative.txt`: Additional results related to generative tasks.
 
 - **Pre-trained Embedding Augmentations:**
-  - `rnn_pre_trained_english.png` & `transformer_pre_trained_english.png`: Incorporating pre-trained embeddings to enhance model performance.
+  - `rnn_pre_trained_english.png` & `transformer_pre_trained_english.png`: Incorporating pre-trained GloVe embeddings to enhance model performance.
 
 - **Transformer Specific Augmentations:**
   - `transformer_baseline_4head.png`, `transformer_baseline_8head.png`, `transformer_baseline_16head.png`: Testing the effect of varying the number of attention heads in the Transformer model.
@@ -135,6 +135,8 @@ Model performance was evaluated using accuracy and confusion matrices. Additiona
 - **NMT with Attention**: [Neural Machine Translation with Attention in TensorFlow](https://www.tensorflow.org/text/tutorials/nmt_with_attention)
 - **Data Source**: The English-French parallel corpus used in this project is sourced from [Laurent Veyssier's Machine Translation Repository](https://github.com/LaurentVeyssier/Machine-translation-English-French-with-Deep-neural-Network/tree/main/data).
 - **Evaluation Metric**: BLEU score computation is based on the implementation from [BangoC123/BLEU](https://github.com/bangoc123/BLEU).
+- **GloVe Embeddings**: [GloVe: Global Vectors for Word Representation](https://nlp.stanford.edu/projects/glove/)
+   **Description**: Pre-trained word vectors developed by Stanford University, widely used for embedding layers in NLP models.
 
 ## License
 
