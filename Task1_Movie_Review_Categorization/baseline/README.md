@@ -104,8 +104,6 @@ Model performance was evaluated using accuracy and confusion matrices. Additiona
 
 - **Sentiment Analysis using RNN-LSTM**: This repository demonstrates sentiment analysis using Recurrent Neural Networks (RNN) with Long Short-Term Memory (LSTM) units, employing the Google News Word2Vec model for word embeddings. [GitHub Repository](https://github.com/saadarshad102/Sentiment-Analysis-RNN-LSTM)
 
-- **Sentiment Analysis with Transformers**: This project implements sentiment analysis utilizing the BERT model from the Transformers library, providing a step-by-step guide on data preprocessing, model training, evaluation, and sample predictions. [GitHub Repository](https://github.com/Guacamoley/Transformers-Sentiment-Analysis)
-
 ## License
 
 This project is licensed under the MIT License. See the LICENSE file for details.
