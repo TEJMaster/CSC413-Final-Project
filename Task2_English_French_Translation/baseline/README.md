@@ -9,21 +9,19 @@ By implementing and evaluating these two models, we aim to understand the perfor
 
 ## Table of Contents
 
-- [Introduction](#introduction)
-- [Dataset](#dataset)
-  - [Dataset Repository](#dataset-repository)
-  - [Dataset Preparation](#dataset-preparation)
-- [Models](#models)
-  - [RNN Baseline (GRU-based)](#rnn-baseline-gru-based)
-  - [Transformer Baseline](#transformer-baseline)
-- [Training Process](#training-process)
-- [Evaluation](#evaluation)
-- [Potential Improvements](#potential-improvements)
-- [Usage](#usage)
-  - [RNN Baseline Usage](#rnn-baseline-usage)
-  - [Transformer Baseline Usage](#transformer-baseline-usage)
-- [Additional Resources](#additional-resources)
-- [License](#license)
+- [English-French Translation with RNN and Transformer Baselines](#english-french-translation-with-rnn-and-transformer-baselines)
+  - [Table of Contents](#table-of-contents)
+  - [Introduction](#introduction)
+  - [Dataset](#dataset)
+    - [Dataset Repository](#dataset-repository)
+    - [Dataset Preparation](#dataset-preparation)
+  - [Models](#models)
+    - [RNN Baseline (GRU-based)](#rnn-baseline-gru-based)
+    - [Transformer Baseline](#transformer-baseline)
+  - [Training Process](#training-process)
+  - [Evaluation](#evaluation)
+  - [Additional Resources](#additional-resources)
+  - [License](#license)
 
 ## Introduction
 
@@ -89,13 +87,17 @@ The Transformer baseline utilizes a Transformer-based Sequence-to-Sequence archi
 3. **Seq2Seq Wrapper**:
    - Combines the encoder and decoder to facilitate end-to-end training.
 
+**Note**: This Transformer implementation is custom-built using PyTorch's `nn.TransformerEncoder` and does **not** utilize pre-trained Transformer architectures like BERT.
+
 ## Training Process
 
 The training workflow includes:
 
 1. **Data Preparation**: Tokenization, vocabulary building, and splitting the dataset into training, validation, and test sets.
-2. **Model Training**: Both RNN and Transformer models are trained on the prepared dataset using teacher forcing.
-3. **Evaluation**: Evaluate models on the validation and test datasets, calculating loss and BLEU scores.
+2. **Data Augmentation**: Employed various data augmentation techniques to enhance model robustness, as detailed in the [Data Augmentation Tests](#data-augmentation-tests) section.
+3. **Model Training**: Both RNN and Transformer models are trained on the prepared dataset using teacher forcing.
+4. **Evaluation**: Evaluate models on the validation and test datasets, calculating loss and BLEU scores.
+5. **Model Saving**: Saved the best-performing model based on validation loss for future use and inference.
 
 ## Evaluation
 
@@ -104,34 +106,32 @@ The evaluation metrics include:
 1. **Cross-Entropy Loss**: Measures the difference between predicted and actual tokens.
 2. **BLEU Score**: Evaluates the quality of translations by comparing predicted translations to the reference translations.
 
-## Potential Improvements
+Model performance was evaluated using accuracy and confusion matrices. Additionally, visualizations of training and validation loss/BLEU scores were plotted over epochs to monitor the training progress and assess model convergence.
 
-- **Pre-trained Embeddings**: Incorporating embeddings like GloVe or FastText.
-- **Attention Mechanisms for RNN**: Adding attention to the GRU-based model.
-- **Hyperparameter Optimization**: Experimenting with different parameters to improve performance.
+**Descriptions of Augmentation Tests:**
 
-## Usage
+- **Proportion-Based Augmentations:**
+  - `rnn_20%long.png` to `rnn_80%long.png`: Experiments varying the percentage of long sentences (sentence length > 15) in the RNN training data.
+  - `transformer_20%long.png` to `transformer_80%long.png`: Similar experiments for the Transformer baseline.
 
-### RNN Baseline Usage
+- **Training Data Size Adjustments:**
+  - `rnn_15000data.png` & `rnn_5000data.png`: Testing the impact of different amounts of training data for the RNN model.
+  - `transformer_15000data.png` & `transformer_5000data.png`: Similar adjustments for the Transformer model.
 
-1. Navigate to the project directory.
-2. Run the RNN script:
-   ```bash
-   python rnn_baseline_generative.py
-   ```
+- **Baseline Results:**
+  - `rnn_baseline.png` & `transformer_baseline_generative.txt`: Added baseline results for both models.
+  - `rnn_baseline_generative.txt` & `transformer_baseline_generative.txt`: Additional results related to generative tasks.
 
-### Transformer Baseline Usage
+- **Pre-trained Embedding Augmentations:**
+  - `rnn_pre_trained_english.png` & `transformer_pre_trained_english.png`: Incorporating pre-trained embeddings to enhance model performance.
 
-1. Navigate to the project directory.
-2. Run the Transformer script:
-   ```bash
-   python transformer_baseline_generative.py
-   ```
+- **Transformer Specific Augmentations:**
+  - `transformer_baseline_4head.png`, `transformer_baseline_8head.png`, `transformer_baseline_16head.png`: Testing the effect of varying the number of attention heads in the Transformer model.
 
 ## Additional Resources
 
-- **RNN Baseline Reference**: [NLP From Scratch: Translation with a Sequence to Sequence Network and Attention](https://pytorch.org/tutorials/intermediate/seq2seq_translation_tutorial.html?utm_source=chatgpt.com)
-- **Transformer Baseline Reference**: [Neural Machine Translation with a Transformer and Keras](https://www.tensorflow.org/text/tutorials/transformer?utm_source=chatgpt.com)
+- **RNN Baseline Reference**: [NLP From Scratch: Translation with a Sequence to Sequence Network and Attention](https://pytorch.org/tutorials/intermediate/seq2seq_translation_tutorial.html)
+- **Transformer Baseline Reference**: [Neural Machine Translation with a Transformer and Keras](https://www.tensorflow.org/text/tutorials/transformer)
 - **NMT with Attention**: [Neural Machine Translation with Attention in TensorFlow](https://www.tensorflow.org/text/tutorials/nmt_with_attention)
 - **Data Source**: The English-French parallel corpus used in this project is sourced from [Laurent Veyssier's Machine Translation Repository](https://github.com/LaurentVeyssier/Machine-translation-English-French-with-Deep-neural-Network/tree/main/data).
 - **Evaluation Metric**: BLEU score computation is based on the implementation from [BangoC123/BLEU](https://github.com/bangoc123/BLEU).
