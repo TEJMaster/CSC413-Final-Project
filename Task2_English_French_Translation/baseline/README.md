@@ -130,8 +130,9 @@ The evaluation metrics include:
 
 ## Additional Resources
 
-- **RNN Baseline Reference**: [Machine Translation Using Seq2Seq with Attention](https://github.com/shravankumar147/seq2seq-attention-mt)
-- **Transformer Baseline Reference**: [Transformer Model Implementation](https://github.com/tensorflow/tensor2tensor)
+- **RNN Baseline Reference**: [NLP From Scratch: Translation with a Sequence to Sequence Network and Attention](https://pytorch.org/tutorials/intermediate/seq2seq_translation_tutorial.html?utm_source=chatgpt.com)
+- **Transformer Baseline Reference**: [Neural Machine Translation with a Transformer and Keras](https://www.tensorflow.org/text/tutorials/transformer?utm_source=chatgpt.com)
+- **NMT with Attention**: [Neural Machine Translation with Attention in TensorFlow](https://www.tensorflow.org/text/tutorials/nmt_with_attention)
 - **Data Source**: The English-French parallel corpus used in this project is sourced from [Laurent Veyssier's Machine Translation Repository](https://github.com/LaurentVeyssier/Machine-translation-English-French-with-Deep-neural-Network/tree/main/data).
 - **Evaluation Metric**: BLEU score computation is based on the implementation from [BangoC123/BLEU](https://github.com/bangoc123/BLEU).
 
