@@ -67,7 +67,7 @@ Both tasks utilize RNN-based models and Transformer architectures to provide a c
   - Training/Validation Loss plots
   - BLEU Scores (for Transformer)
 
-### Data Augmentation
+### Augmentation
 
 - **Strategies**:
   - Varying proportions of positive samples.
@@ -118,7 +118,7 @@ Both tasks utilize RNN-based models and Transformer architectures to provide a c
   - BLEU Scores
   - Training/Validation Loss and BLEU Score visualizations
 
-### Data Augmentation
+### Augmentation
 
 - **Strategies**:
   - Varying the proportion of long sentences.
